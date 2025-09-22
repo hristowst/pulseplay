@@ -1,17 +1,19 @@
-# Stage 1: Build the app using Maven
-FROM maven:3.9.7-eclipse-temurin-21-alpine AS build
+# Stage 1: Build the application with Maven and Java 21
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
+# Copy Maven config and download dependencies for caching
 COPY pom.xml .
-COPY src src/
-# If using mvnw, copy it too (but Maven image has mvn, so optional)
-COPY mvnw mvnw.cmd ./
-RUN chmod +x mvnw  # Only if using mvnw; skip if using mvn
-RUN ./mvnw clean package -DskipTests  # Or: mvn clean package -DskipTests
-# The JAR will be in target/ (e.g., your-app-0.0.1-SNAPSHOT.jar)
+RUN mvn dependency:go-offline -B
+# Copy source code and build
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Stage 2: Run the app
+# Stage 2: Run the application with Java 21
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
+# Copy the built JAR from the build stage
 COPY --from=build /app/target/*.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Expose the dynamic port assigned by Render
+EXPOSE $PORT
+# Run the JAR with the port set by Render's $PORT env variable
+ENTRYPOINT ["sh", "-c", "java -jar app.jar --server.port=${PORT:-8080}"]
