@@ -2,6 +2,7 @@ package com.puleplay.pulseplay.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtParser;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureException;
 import org.slf4j.Logger;
@@ -10,12 +11,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
+import java.net.URL;
+import com.nimbusds.jose.jwk.JWKSet;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.security.PublicKey;
 import java.util.Collections;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -34,7 +38,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             try {
-                Claims claims = jwtParser.parseClaimsJws(token).getBody();
+                JWKSet jwkSet = JWKSet.load(new URL("https://vlkrbgiazgmwxxijylwq.supabase.co/auth/v1/.well-known/jwks.json"));
+                PublicKey publicKey = jwkSet.getKeys().get(0).toECKey().toPublicKey();
+                Claims claims = Jwts.parserBuilder()
+                        .setSigningKey(publicKey)
+                        .build()
+                        .parseClaimsJws(token).getBody();
                 String userId = claims.getSubject();
                 UserDetails userDetails = new User(userId, "", Collections.emptyList());
                 SecurityContextHolder.getContext().setAuthentication(
