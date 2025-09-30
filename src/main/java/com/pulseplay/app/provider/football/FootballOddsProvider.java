@@ -16,6 +16,8 @@ import com.pulseplay.app.provider.IOddsProvider;
 @Component
 public class FootballOddsProvider implements IOddsProvider {
 
+        static final String NOT_STARTED_STATUS = "Not Started";
+
         private MultiValueMap<String, String> countryLeageMap = new LinkedMultiValueMap<>() {
                 {
                         put("England", List.of("Premier League", "Championship", "FA Cup", "League Cup"));
@@ -74,7 +76,17 @@ public class FootballOddsProvider implements IOddsProvider {
                 }
 
                 try {
-                        return FootballOddsMapper.mapApiResponseToFixtures(responseMap);
+                        var response = FootballOddsMapper.mapApiResponseToFixtures(responseMap);
+                        return response.stream()
+                                        .filter(fixture -> {
+                                                var league = fixture.getLeague().getName();
+                                                var country = fixture.getLeague().getCountry();
+                                                var status = fixture.getStatus();
+                                                return countryLeageMap.containsKey(country) &&
+                                                                countryLeageMap.get(country).contains(league) &&
+                                                                status.equals(NOT_STARTED_STATUS);
+                                        })
+                                        .toList();
                 } catch (Exception e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();

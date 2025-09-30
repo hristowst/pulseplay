@@ -1,4 +1,4 @@
-package com.pulseplay.app.security;
+package com.pulseplay.app.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -10,6 +10,8 @@ import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebSecurity
@@ -37,6 +39,20 @@ public class SecurityConfig {
                 return NimbusJwtDecoder.withJwkSetUri(jwkSetUri)
                                 .jwsAlgorithm(SignatureAlgorithm.ES256) // Use ES256 for Supabase
                                 .build();
+        }
+
+        @Bean
+        public WebMvcConfigurer corsConfigurer() {
+                return new WebMvcConfigurer() {
+                        @Override
+                        public void addCorsMappings(CorsRegistry registry) {
+                                registry.addMapping("/**")
+                                                .allowedOrigins("http://localhost:4200", "https://pulseplay-ui.vercel.app")
+                                                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                                                .allowedHeaders("Authorization", "Content-Type")
+                                                .allowCredentials(true);
+                        }
+                };
         }
 
 }
