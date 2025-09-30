@@ -26,6 +26,8 @@ public class SecurityConfig {
                 http
                                 .authorizeHttpRequests(authz -> authz
                                                 .requestMatchers("/public/**").permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**")
+                                                .permitAll()
                                                 .anyRequest().authenticated())
                                 .oauth2ResourceServer(oauth2 -> oauth2
                                                 .jwt(jwt -> jwt.decoder(jwtDecoder())))
@@ -47,7 +49,8 @@ public class SecurityConfig {
                         @Override
                         public void addCorsMappings(CorsRegistry registry) {
                                 registry.addMapping("/**")
-                                                .allowedOrigins("http://localhost:4200", "https://pulseplay-ui.vercel.app")
+                                                .allowedOrigins("http://localhost:4200",
+                                                                "https://pulseplay-ui.vercel.app")
                                                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                                                 .allowedHeaders("Authorization", "Content-Type")
                                                 .allowCredentials(true);
