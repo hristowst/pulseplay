@@ -26,6 +26,7 @@ public class FootballOddsProvider implements IOddsProvider {
                         put("Italy", List.of("Serie A", "Coppa Italia", "Serie B"));
                         put("France", List.of("Ligue 1", "Ligue 2", "Coupe de France"));
                         put("Bulgaria", List.of("First League", "Second League", "Cup", "Bulgarian Supercup"));
+                        put("World", List.of("UEFA Champions League", "UEFA Europa League", "FIFA World Cup", "UEFA Euro"));
                 }
         };
 
